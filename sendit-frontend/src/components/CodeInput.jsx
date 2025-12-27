@@ -1,6 +1,6 @@
 import { useState } from "react";
-import axios from "axios";
 import "./styles/CodeInput.css";
+import api from "../services/api";
 
 function CodeInput() {
   const [code, setCode] = useState("");
@@ -25,8 +25,8 @@ function CodeInput() {
         return;
       }
 
-      const response = await axios.post(
-        "http://localhost:5000/api/receive",
+      const response = await api.post(
+        "/api/receive",
         { code },
         {
           responseType: "blob",

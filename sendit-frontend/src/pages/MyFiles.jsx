@@ -1,8 +1,8 @@
 import { useEffect, useState, useContext } from "react";
-import axios from "axios";
 import { AuthContext } from "../context/AuthContext";
 import Mascot from "../components/Mascot";
 import "../styles/MyFiles.css";
+import api from "../services/api";
 
 function MyFiles() {
   const [files, setFiles] = useState([]);
@@ -17,7 +17,7 @@ function MyFiles() {
     const fetchFiles = async () => {
       try {
         setLoading(true);
-        const res = await axios.get("http://localhost:5000/api/files/my", {
+        const res = await api.get("/api/files/my", {
           headers: {
             Authorization: `Bearer ${token}`,
           },

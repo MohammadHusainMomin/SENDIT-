@@ -1,6 +1,6 @@
 import { useState } from "react";
-import axios from "axios";
 import "./styles/FileUpload.css";
+import api from "../services/api";
 
 function FileUpload() {
   const [file, setFile] = useState(null);
@@ -24,10 +24,10 @@ function FileUpload() {
 
       const token = localStorage.getItem("token");
 
-      const res = await axios.post(
+      const res = await api.post(
         token
-          ? "http://localhost:5000/api/send-auth"
-          : "http://localhost:5000/api/send",
+          ? "/api/send-auth"
+          : "/api/send",
         formData,
         {
           headers: {

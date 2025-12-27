@@ -1,8 +1,8 @@
 import { useState, useContext } from "react";
-import axios from "axios";
 import GoogleLoginBtn from "./GoogleLoginBtn";
 import { AuthContext } from "../context/AuthContext";
 import "./styles/AuthModel.css";
+import api from "../services/api";
 
 function AuthModal({ isOpen, closeModal }) {
   const [mode, setMode] = useState("login");
@@ -33,15 +33,15 @@ function AuthModal({ isOpen, closeModal }) {
 
       const url =
         mode === "register"
-          ? "http://localhost:5000/api/auth/register"
-          : "http://localhost:5000/api/auth/login";
+          ? "/api/auth/register"
+          : "/api/auth/login";
 
       const payload =
         mode === "register"
           ? form
           : { email: form.email, password: form.password };
 
-      const res = await axios.post(url, payload);
+      const res = await api.post(url, payload);
 
       localStorage.setItem("token", res.data.token);
       login(res.data.user);
