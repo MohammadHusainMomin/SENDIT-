@@ -17,7 +17,9 @@ node_modules/
 # =====================
 # Uploads (Multer)
 # =====================
-uploads/
+uploads/*
+!uploads/.gitkeep
+
 
 # =====================
 # Build folders
