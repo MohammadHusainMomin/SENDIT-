@@ -3,18 +3,26 @@ import jwt from "jsonwebtoken";
 import User from "../models/User.js";
 import { OAuth2Client } from "google-auth-library";
 
+
+
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 export const googleAuth = async (req, res) => {
   try {
-    const { token } = req.body;
+    const { credential } = req.body;
+
+    if (!credential) {
+      return res.status(401).json({ message: "No Google token provided" });
+    }
 
     const ticket = await client.verifyIdToken({
-      idToken: token,
+      idToken: credential,
       audience: process.env.GOOGLE_CLIENT_ID
     });
 
-    const { name, email, sub } = ticket.getPayload();
+    const payload = ticket.getPayload();
+
+    const { sub, name, email } = payload;
 
     let user = await User.findOne({ email });
 
@@ -27,15 +35,16 @@ export const googleAuth = async (req, res) => {
       });
     }
 
-    const jwtToken = jwt.sign(
+    const token = jwt.sign(
       { id: user._id },
       process.env.JWT_SECRET,
       { expiresIn: "7d" }
     );
 
-    res.json({ token: jwtToken, user });
+    res.json({ token, user });
 
   } catch (error) {
+    console.error("GOOGLE AUTH ERROR:", error.message);
     res.status(401).json({ message: "Google authentication failed" });
   }
 };
@@ -70,8 +79,10 @@ export const registerUser = async (req, res) => {
     res.status(201).json({ token, user });
 
   } catch (err) {
-    res.status(500).json({ message: "Registration failed" });
-  }
+  console.error("REGISTER ERROR:", err.message);
+  res.status(500).json({ message: "Registration failed" });
+}
+
 };
 
 
