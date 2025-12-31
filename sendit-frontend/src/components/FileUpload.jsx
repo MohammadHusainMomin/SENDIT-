@@ -25,9 +25,7 @@ function FileUpload() {
       const token = localStorage.getItem("token");
 
       const res = await api.post(
-        token
-          ? "/api/send-auth"
-          : "/api/send",
+        token ? "/api/send-auth" : "/api/send",
         formData,
         {
           headers: {
@@ -59,6 +57,20 @@ function FileUpload() {
     navigator.clipboard.writeText(code);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const shareOnWhatsApp = () => {
+    const message = `📁 SENDIT File Share
+
+Here is your secure file access code:
+🔐 Code: ${code}
+
+⏰ Valid for 10 minutes only.
+
+Open SENDIT app to download the file.`;
+
+    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+    window.open(whatsappUrl, "_blank");
   };
 
   const handleReset = () => {
@@ -132,12 +144,21 @@ function FileUpload() {
             <p className="code-label">Share this code with your friend:</p>
             <div className="code-box">
               <span className="access-code">{code}</span>
+
               <button
                 className="btn-copy"
                 onClick={copyToClipboard}
                 title="Copy code"
               >
                 {copied ? "✓ Copied" : "📋 Copy"}
+              </button>
+
+              <button
+                className="btn-whatsapp"
+                onClick={shareOnWhatsApp}
+                title="Share on WhatsApp"
+              >
+                🟢 WhatsApp
               </button>
             </div>
           </div>

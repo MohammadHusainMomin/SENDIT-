@@ -30,9 +30,7 @@ export const receiveFile = async (req, res) => {
     const { code } = req.body;
 
     const file = await File.findOne({ code });
-    if (!file) {
-      return res.status(404).json({ message: "Invalid code" });
-    }
+    if (!file) return res.status(404).json({ message: "Invalid code" });
 
     if (new Date() > file.expiresAt) {
       return res.status(410).json({ message: "Code expired" });
@@ -45,19 +43,22 @@ export const receiveFile = async (req, res) => {
 
     const decryptedPath = `uploads/tmp-${Date.now()}`;
 
+    // ✅ MUST await
     await decryptFile(file.encryptedPath, decryptedPath);
 
-    // 🔥 THIS LINE FIXES FILENAME ISSUE
+    // ✅ Correct filename + mime
     res.setHeader(
       "Content-Disposition",
       `attachment; filename="${encodeURIComponent(file.originalName)}"`
     );
-
     res.setHeader("Content-Type", file.mimeType);
 
-    res.download(decryptedPath, file.originalName, () => {
+    res.download(decryptedPath, file.originalName, (err) => {
+      if (err) console.error("DOWNLOAD ERROR:", err);
+
+      // ✅ SAFE DELETE (NO CRASH)
       if (fs.existsSync(decryptedPath)) {
-        fs.unlinkSync(decryptedPath);
+        fs.unlink(decryptedPath, () => {});
       }
     });
 
@@ -66,7 +67,6 @@ export const receiveFile = async (req, res) => {
     res.status(500).json({ message: "Download failed" });
   }
 };
-
 
 
 
@@ -92,9 +92,21 @@ export const downloadFromHistory = async (req, res) => {
   ) return res.sendStatus(403);
 
   const decryptedPath = `uploads/tmp-${Date.now()}`;
-  decryptFile(file.encryptedPath, decryptedPath);
 
-  res.download(decryptedPath, file.originalName, () => {
-    fs.unlinkSync(decryptedPath);
+  // ✅ MUST await
+  await decryptFile(file.encryptedPath, decryptedPath);
+
+  res.setHeader(
+    "Content-Disposition",
+    `attachment; filename="${encodeURIComponent(file.originalName)}"`
+  );
+  res.setHeader("Content-Type", file.mimeType);
+
+  res.download(decryptedPath, file.originalName, (err) => {
+    if (err) console.error(err);
+
+    if (fs.existsSync(decryptedPath)) {
+      fs.unlink(decryptedPath, () => {});
+    }
   });
 };
