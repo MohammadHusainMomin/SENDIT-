@@ -11,7 +11,7 @@ function GoogleLoginBtn({ closeModal }) {
       const res = await api.post(
         "/api/auth/google",
         {
-          credential: credentialResponse.credential // ✅ FIX HERE
+          credential: credentialResponse.credential 
         }
       );
 

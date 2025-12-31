@@ -1,18 +1,21 @@
-import express from "express";
+
 import dotenv from "dotenv";
+dotenv.config();
+
+import express from "express";
 import connectDB from "./db.js";
 
 import authRoutes from "./routes/auth.routes.js";
 import fileRoutes from "./routes/file.routes.js";
 
-dotenv.config();
+
 connectDB();
 
 const app = express();
 
 app.use((req, res, next) => {
   const allowedOrigins = [
-    // "http://localhost:3000",
+    "http://localhost:3000",
     "https://senditsystem.netlify.app"
   ];
 

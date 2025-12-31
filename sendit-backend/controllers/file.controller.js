@@ -1,85 +1,100 @@
 import fs from "fs";
 import File from "../models/File.js";
+import { encryptFile, decryptFile } from "../utils/encryption.utils.js";
 
 /* ================= SEND FILE ================= */
 export const sendFile = async (req, res) => {
-    console.log("REQ FILE:", req.file); 
-  try {
-    
-    
-    if (!req.file) {
-      return res.status(400).json({ message: "File missing" });
-    }
+  if (!req.file) return res.status(400).json({ message: "File missing" });
 
-    const code = Math.floor(1000 + Math.random() * 9000).toString();
+  const code = Math.floor(1000 + Math.random() * 9000).toString();
+
+  const encryptedPath = `uploads/encrypted-${Date.now()}`;
+ await encryptFile(req.file.path, encryptedPath);
 
   await File.create({
-  code,
-  path: req.file.path,
-  originalName: req.file.originalname,
-  mimeType: req.file.mimetype,
-  expiresAt: new Date(Date.now() + 10 * 60 * 1000),
-  senderId: req.user ? req.user.id : null
-});
+    code,
+    encryptedPath,
+    originalName: req.file.originalname,
+    mimeType: req.file.mimetype,
+    expiresAt: new Date(Date.now() + 10 * 60 * 1000),
+    senderId: req.user?.id
+  });
 
-
-    res.status(201).json({ code });
-
-  } catch (err) {
-     console.error("UPLOAD ERROR BACKEND:", err); 
-    res.status(500).json({ message: "Upload failed" });
-  }
+  res.json({ code });
 };
+
 
 /* ================= RECEIVE FILE ================= */
 export const receiveFile = async (req, res) => {
   try {
     const { code } = req.body;
 
-    const fileData = await File.findOne({ code });
-    if (!fileData) {
-      return res.status(404).json({ message: "Invalid or expired code" });
+    const file = await File.findOne({ code });
+    if (!file) {
+      return res.status(404).json({ message: "Invalid code" });
     }
 
-   
-    if (req.user && !fileData.receiverId) {
-      fileData.receiverId = req.user.id;
-      await fileData.save();
+    if (new Date() > file.expiresAt) {
+      return res.status(410).json({ message: "Code expired" });
     }
 
+    if (!file.receiverId && req.user) {
+      file.receiverId = req.user.id;
+      await file.save();
+    }
+
+    const decryptedPath = `uploads/tmp-${Date.now()}`;
+
+    await decryptFile(file.encryptedPath, decryptedPath);
+
+    // 🔥 THIS LINE FIXES FILENAME ISSUE
     res.setHeader(
       "Content-Disposition",
-      `attachment; filename="${encodeURIComponent(fileData.originalName)}"`
+      `attachment; filename="${encodeURIComponent(file.originalName)}"`
     );
 
-    res.setHeader("Content-Type", fileData.mimeType);
+    res.setHeader("Content-Type", file.mimeType);
 
-    res.sendFile(fileData.path, { root: "." });
+    res.download(decryptedPath, file.originalName, () => {
+      if (fs.existsSync(decryptedPath)) {
+        fs.unlinkSync(decryptedPath);
+      }
+    });
 
-  } catch (error) {
-    console.error("RECEIVE ERROR:", error);
+  } catch (err) {
+    console.error("RECEIVE ERROR:", err);
     res.status(500).json({ message: "Download failed" });
   }
 };
 
 
+
+
 /* ================= HISTORY ================= */
 export const getMyFiles = async (req, res) => {
-  try {
-    const userId = req.user.id;
+  const userId = req.user.id;
 
-    const files = await File.find({
-      $or: [
-        { senderId: userId },
-        { receiverId: userId }
-      ]
-    })
-      .sort({ createdAt: -1 })
-      .select("originalName code senderId receiverId createdAt");
+  const files = await File.find({
+    $or: [{ senderId: userId }, { receiverId: userId }]
+  }).sort({ createdAt: -1 });
 
-    res.json(files);
+  res.json(files);
+};
 
-  } catch (err) {
-    res.status(500).json({ message: "History fetch failed" });
-  }
+/* ================= DOWNLOAD FROM HISTORY ================= */
+export const downloadFromHistory = async (req, res) => {
+  const file = await File.findById(req.params.id);
+  if (!file) return res.sendStatus(404);
+
+  if (
+    file.senderId.toString() !== req.user.id &&
+    file.receiverId?.toString() !== req.user.id
+  ) return res.sendStatus(403);
+
+  const decryptedPath = `uploads/tmp-${Date.now()}`;
+  decryptFile(file.encryptedPath, decryptedPath);
+
+  res.download(decryptedPath, file.originalName, () => {
+    fs.unlinkSync(decryptedPath);
+  });
 };

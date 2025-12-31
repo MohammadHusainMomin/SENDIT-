@@ -36,17 +36,13 @@ function CodeInput() {
         }
       );
 
-      // Extract filename from content-disposition header
       const disposition = response.headers["content-disposition"];
       let fileName = "downloaded-file";
 
       if (disposition) {
-        const fileNameMatch = disposition.match(
-          /filename\*?=(?:UTF-8'')?"?([^"]+)"?/i
-        );
-
-        if (fileNameMatch && fileNameMatch[1]) {
-          fileName = decodeURIComponent(fileNameMatch[1]);
+        const match = disposition.match(/filename="?([^"]+)"?/);
+        if (match && match[1]) {
+          fileName = decodeURIComponent(match[1]);
         }
       }
 
@@ -103,9 +99,7 @@ function CodeInput() {
 
       {error && <div className="error-message">{error}</div>}
       {success && (
-        <div className="success-message">
-          ✓ File downloaded successfully!
-        </div>
+        <div className="success-message">✓ File downloaded successfully!</div>
       )}
 
       <button

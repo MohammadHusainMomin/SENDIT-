@@ -34,7 +34,8 @@ function MyFiles() {
   }, [token]);
 
   const sentFiles = files.filter((file) => file.senderId === user?._id);
-  const receivedFiles = files.filter((file) => file.senderId !== user?._id);
+
+  const receivedFiles = files.filter((file) => file.receiverId === user?._id);
 
   const displayFiles = activeTab === "sent" ? sentFiles : receivedFiles;
 
@@ -123,8 +124,46 @@ function MyFiles() {
                   </div>
 
                   <div className="file-card-footer">
-                    <button className="btn-copy-code" title="Copy code">
+                    <button
+                      className="btn-copy-code"
+                      onClick={() => navigator.clipboard.writeText(file.code)}
+                      title="Copy code"
+                    >
                       📋 {file.code}
+                    </button>
+
+                    <button
+                      className="btn-download-history"
+                      onClick={async () => {
+                        try {
+                          const res = await api.get(
+                            `/api/files/download/${file._id}`,
+                            {
+                              responseType: "blob",
+                              headers: {
+                                Authorization: `Bearer ${token}`,
+                              },
+                            }
+                          );
+
+                          const blob = new Blob([res.data], {
+                            type: res.headers["content-type"],
+                          });
+
+                          const url = window.URL.createObjectURL(blob);
+                          const a = document.createElement("a");
+                          a.href = url;
+                          a.download = file.originalName;
+                          document.body.appendChild(a);
+                          a.click();
+                          a.remove();
+                          window.URL.revokeObjectURL(url);
+                        } catch (err) {
+                          alert("Download failed");
+                        }
+                      }}
+                    >
+                      ⬇️ Download
                     </button>
                   </div>
                 </div>

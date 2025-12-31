@@ -3,7 +3,8 @@ import multer from "multer";
 import {
   sendFile,
   receiveFile,
-  getMyFiles
+  getMyFiles,
+  downloadFromHistory
 } from "../controllers/file.controller.js";
 import authMiddleware from "../middleware/auth.middleware.js";
 
@@ -29,5 +30,8 @@ router.post("/receive", authMiddleware, receiveFile);
 
 //  History
 router.get("/files/my", authMiddleware, getMyFiles);
+
+//  Download from history
+router.get("/files/download/:id", authMiddleware, downloadFromHistory);
 
 export default router;
