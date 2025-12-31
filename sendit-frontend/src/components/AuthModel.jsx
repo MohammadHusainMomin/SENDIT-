@@ -1,29 +1,38 @@
 import { useState, useContext } from "react";
 import GoogleLoginBtn from "./GoogleLoginBtn";
+import ForgotPassword from "./ForgotPassword";
 import { AuthContext } from "../context/AuthContext";
-import "./styles/AuthModel.css";
+import { useToast } from "../context/ToastContext";
 import api from "../services/api";
+import "./styles/AuthModel.css";
 
 function AuthModal({ isOpen, closeModal }) {
-  const [mode, setMode] = useState("login");
+  const [mode, setMode] = useState("login"); // login | register | forgot
+  const [step, setStep] = useState("form"); // form | otp
   const [form, setForm] = useState({ name: "", email: "", password: "" });
+  const [otp, setOtp] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
   const { login } = useContext(AuthContext);
+  const { success, error: showError } = useToast();
 
   if (!isOpen) return null;
 
+  /* ================= LOGIN / REGISTER ================= */
   const handleSubmit = async () => {
-    if (mode === "register" && !form.name) {
-      setError("Name is required");
-      return;
-    }
     if (!form.email) {
       setError("Email is required");
       return;
     }
-    if (!form.password) {
+
+    if (mode === "login" && !form.password) {
       setError("Password is required");
+      return;
+    }
+
+    if (mode === "register" && (!form.name || !form.password)) {
+      setError("All fields are required");
       return;
     }
 
@@ -31,145 +40,215 @@ function AuthModal({ isOpen, closeModal }) {
       setLoading(true);
       setError("");
 
-      const url =
-        mode === "register"
-          ? "/api/auth/register"
-          : "/api/auth/login";
+      // 🔹 LOGIN
+      if (mode === "login") {
+        const res = await api.post("/api/auth/login", {
+          email: form.email,
+          password: form.password,
+        });
 
-      const payload =
-        mode === "register"
-          ? form
-          : { email: form.email, password: form.password };
+        localStorage.setItem("token", res.data.token);
+        login(res.data.user);
+        success("Login successful! Welcome back 🎉");
+        closeModal();
+        return;
+      }
 
-      const res = await api.post(url, payload);
+      // 🔹 REGISTER → SEND OTP
+      await api.post("/api/auth/register-init", {
+        email: form.email,
+      });
 
-      localStorage.setItem("token", res.data.token);
-      login(res.data.user);
-      closeModal();
+      success("OTP sent to your email! ✓");
+      setStep("otp");
     } catch (err) {
-      setError(err.response?.data?.message || "Authentication failed");
+      const errorMsg = err.response?.data?.message || "Something went wrong";
+      setError(errorMsg);
+      showError(errorMsg);
     } finally {
       setLoading(false);
     }
   };
 
-  const toggleMode = () => {
-    setMode(mode === "login" ? "register" : "login");
-    setError("");
-    setForm({ name: "", email: "", password: "" });
+  /* ================= VERIFY OTP ================= */
+  const handleVerifyOtp = async () => {
+    if (!otp) {
+      setError("OTP is required");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError("");
+
+      const res = await api.post("/api/auth/verify-otp", {
+        name: form.name,
+        email: form.email,
+        password: form.password,
+        otp,
+      });
+
+      localStorage.setItem("token", res.data.token);
+      login(res.data.user);
+      success("Account created successfully! 🎉");
+      closeModal();
+    } catch (err) {
+      const errorMsg = err.response?.data?.message || "Invalid OTP";
+      setError(errorMsg);
+      showError(errorMsg);
+    } finally {
+      setLoading(false);
+    }
   };
 
+  const switchMode = (newMode) => {
+    setMode(newMode);
+    setStep("form");
+    setForm({ name: "", email: "", password: "" });
+    setOtp("");
+    setError("");
+    setLoading(false);
+  };
+
+  /* ================= UI ================= */
   return (
     <div className="auth-modal-overlay">
       <div className="auth-modal">
-        <button className="modal-close-btn" onClick={closeModal}>
-          ✕
-        </button>
+        <button className="modal-close-btn" onClick={closeModal}>✕</button>
 
-        <div className="modal-header">
-          <div className="modal-icon">🔐</div>
-          <h3>{mode === "login" ? "Welcome Back" : "Join SENDIT"}</h3>
-          <p>
-            {mode === "login"
-              ? "Sign in to access your files"
-              : "Create an account to get started"}
-          </p>
-        </div>
-
-        <form
-          className="auth-form"
-          onSubmit={(e) => {
-            e.preventDefault();
-            handleSubmit();
-          }}
-        >
-          {error && <div className="error-message">{error}</div>}
-
-          {mode === "register" && (
-            <div className="form-group">
-              <label htmlFor="name">Full Name</label>
-              <input
-                id="name"
-                type="text"
-                placeholder="Your name"
-                value={form.name}
-                onChange={(e) => {
-                  setForm({ ...form, name: e.target.value });
-                  setError("");
-                }}
-                disabled={loading}
-              />
+        {/* ================= FORGOT PASSWORD ================= */}
+        {mode === "forgot" ? (
+          <ForgotPassword closeModal={closeModal} />
+        ) : (
+          <>
+            <div className="modal-header">
+              <div className="modal-icon">🔐</div>
+              <h3>
+                {mode === "login"
+                  ? "Welcome Back"
+                  : step === "form"
+                  ? "Create Account"
+                  : "Verify OTP"}
+              </h3>
             </div>
-          )}
 
-          <div className="form-group">
-            <label htmlFor="email">Email Address</label>
-            <input
-              id="email"
-              type="email"
-              placeholder="your@email.com"
-              value={form.email}
-              onChange={(e) => {
-                setForm({ ...form, email: e.target.value });
-                setError("");
-              }}
-              disabled={loading}
-            />
-          </div>
+            {/* ================= FORM ================= */}
+            {step === "form" && (
+              <form
+                className="auth-form"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  handleSubmit();
+                }}
+              >
+                {error && <div className="error-message">{error}</div>}
 
-          <div className="form-group">
-            <label htmlFor="password">Password</label>
-            <input
-              id="password"
-              type="password"
-              placeholder="••••••••"
-              value={form.password}
-              onChange={(e) => {
-                setForm({ ...form, password: e.target.value });
-                setError("");
-              }}
-              disabled={loading}
-            />
-          </div>
+                {mode === "register" && (
+                  <div className="form-group">
+                    <label>Name</label>
+                    <input
+                      type="text"
+                      value={form.name}
+                      onChange={(e) =>
+                        setForm({ ...form, name: e.target.value })
+                      }
+                    />
+                  </div>
+                )}
 
-          <button
-            type="submit"
-            className="btn-auth-submit"
-            disabled={loading}
-          >
-            {loading
-              ? mode === "login"
-                ? "Signing In..."
-                : "Creating Account..."
-              : mode === "login"
-              ? "Sign In"
-              : "Create Account"}
-          </button>
-        </form>
+                <div className="form-group">
+                  <label>Email</label>
+                  <input
+                    type="email"
+                    value={form.email}
+                    onChange={(e) =>
+                      setForm({ ...form, email: e.target.value })
+                    }
+                  />
+                </div>
 
-        <div className="auth-divider">
-          <span>or</span>
-        </div>
+                <div className="form-group">
+                  <label>Password</label>
+                  <input
+                    type="password"
+                    value={form.password}
+                    onChange={(e) =>
+                      setForm({ ...form, password: e.target.value })
+                    }
+                  />
+                </div>
 
-        <GoogleLoginBtn closeModal={closeModal} />
+                <button className="btn-auth-submit" disabled={loading}>
+                  {loading
+                    ? "Please wait..."
+                    : mode === "login"
+                    ? "Sign In"
+                    : "Send OTP"}
+                </button>
+              </form>
+            )}
 
-        <div className="auth-toggle">
-          <p>
-            {mode === "login"
-              ? "Don't have an account?"
-              : "Already have an account?"}
-            <button
-              type="button"
-              className="toggle-link"
-              onClick={toggleMode}
-              disabled={loading}
-            >
-              {mode === "login" ? "Sign Up" : "Sign In"}
-            </button>
-          </p>
-        </div>
+            {/* ================= OTP ================= */}
+            {step === "otp" && (
+              <div className="auth-form">
+                {error && <div className="error-message">{error}</div>}
 
-       
+                <div className="form-group">
+                  <label>Enter OTP</label>
+                  <input
+                    type="text"
+                    value={otp}
+                    onChange={(e) => setOtp(e.target.value)}
+                  />
+                </div>
+
+                <button
+                  className="btn-auth-submit"
+                  onClick={handleVerifyOtp}
+                  disabled={loading}
+                >
+                  {loading ? "Verifying..." : "Verify & Create Account"}
+                </button>
+              </div>
+            )}
+
+            {/* ================= GOOGLE LOGIN ================= */}
+            {step === "form" && (
+              <>
+                <div className="auth-divider">
+                  <span>or</span>
+                </div>
+                <GoogleLoginBtn closeModal={closeModal} />
+              </>
+            )}
+
+            {/* ================= TOGGLES ================= */}
+            <div className="auth-toggle">
+              <p>
+                {mode === "login"
+                  ? "Don't have an account?"
+                  : "Already have an account?"}
+                <button
+                  className="toggle-link"
+                  onClick={() =>
+                    switchMode(mode === "login" ? "register" : "login")
+                  }
+                >
+                  {mode === "login" ? "Sign Up" : "Sign In"}
+                </button>
+              </p>
+
+              {mode === "login" && (
+                <button
+                  className="toggle-link"
+                  onClick={() => switchMode("forgot")}
+                >
+                  Forgot Password?
+                </button>
+              )}
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

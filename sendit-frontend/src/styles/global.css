@@ -101,7 +101,7 @@ button {
 }
 
 button:hover:not(:disabled) {
-  background: #00bce6;
+  /* background: #00bce6; */
   box-shadow: 0 6px 20px rgba(0, 212, 255, 0.35);
   transform: translateY(-2px) rotate(0.5deg);
   animation: button-wiggle 0.3s ease-out;

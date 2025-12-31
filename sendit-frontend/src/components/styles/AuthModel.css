@@ -242,14 +242,28 @@
   font-size: inherit;
   font-weight: 700;
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   box-shadow: none;
-  text-decoration: underline;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  position: relative;
 }
 
-.toggle-link:hover:not(:disabled) {
-  color: #00bce6;
-  text-decoration: none;
+.toggle-link::after {
+  content: "";
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: #00d4ff;
+  transform: scaleX(0);
+  transform-origin: right;
+  transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.toggle-link:hover::after {
+  transform: scaleX(1);
+  transform-origin: left;
 }
 
 .toggle-link:disabled {
