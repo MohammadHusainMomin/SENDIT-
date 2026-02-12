@@ -26,7 +26,8 @@ const corsOptions = {
       "http://localhost:5175",
       "http://localhost:5176",
       "http://localhost:39344",
-      "https://senditsystem.netlify.app"
+      "https://senditsystem.netlify.app",
+      "https://senditsystemadmin.netlify.app"
     ];
 
     // Allow all localhost origins
