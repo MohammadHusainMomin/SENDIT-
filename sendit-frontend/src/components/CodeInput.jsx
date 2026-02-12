@@ -1,14 +1,19 @@
 import { useState } from "react";
+import { FiDownload, FiSmartphone, FiBox, FiFile, FiArrowDown } from "react-icons/fi";
 import "./styles/CodeInput.css";
 import api from "../services/api";
 import { useToast } from "../context/ToastContext";
+import QRCodeScanner from "./QRCodeScanner";
 
 function CodeInput() {
   const [code, setCode] = useState("");
   const [loading, setLoading] = useState(false);
+  const [filesList, setFilesList] = useState([]);
+  const [showFileList, setShowFileList] = useState(false);
+  const [showScanner, setShowScanner] = useState(false);
   const { success: showSuccess, error: showError } = useToast();
 
-  const handleDownload = async () => {
+  const handleGetFiles = async () => {
     if (code.length !== 4) {
       showError("Please enter a valid 4-digit code");
       return;
@@ -19,18 +24,52 @@ function CodeInput() {
 
       const token = localStorage.getItem("token");
 
-      if (!token) {
-        showError("Please login to receive file");
-        return;
+      const response = await api.post(
+        "/receive",
+        { code },
+        {
+          headers: {
+            ...(token && { Authorization: `Bearer ${token}` }),
+          },
+        }
+      );
+
+      const files = response.data.files || [];
+      setFilesList(files);
+
+      // If only one file, download automatically
+      if (files.length === 1) {
+        handleDownloadFile(0);
+      } else if (files.length > 1) {
+        setShowFileList(true);
       }
+    } catch (err) {
+      console.error(err.response?.data || err.message);
+      if (err.response?.status === 410) {
+        showError("This code has expired. Please ask for a new code");
+      } else {
+        showError("Invalid code or download failed. Please try again.");
+      }
+      setFilesList([]);
+      setShowFileList(false);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDownloadFile = async (fileIndex) => {
+    try {
+      setLoading(true);
+
+      const token = localStorage.getItem("token");
 
       const response = await api.post(
-        "/api/receive",
-        { code },
+        "/receive",
+        { code, fileIndex },
         {
           responseType: "blob",
           headers: {
-            Authorization: `Bearer ${token}`,
+            ...(token && { Authorization: `Bearer ${token}` }),
           },
         }
       );
@@ -45,12 +84,10 @@ function CodeInput() {
         }
       }
 
-      // Create blob with correct MIME type
       const blob = new Blob([response.data], {
         type: response.headers["content-type"],
       });
 
-      // Download the file
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
@@ -60,11 +97,10 @@ function CodeInput() {
       a.remove();
       window.URL.revokeObjectURL(url);
 
-      showSuccess("✓ File downloaded successfully!");
-      setCode("");
+      showSuccess("File downloaded successfully!");
     } catch (err) {
       console.error(err.response?.data || err.message);
-      showError("Invalid code or file expired. Please try again.");
+      showError("Download failed. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -73,6 +109,17 @@ function CodeInput() {
   const handleCodeChange = (e) => {
     const value = e.target.value.replace(/\D/g, "").slice(0, 4);
     setCode(value);
+  };
+
+  const handleReset = () => {
+    setCode("");
+    setFilesList([]);
+    setShowFileList(false);
+  };
+
+  const handleQRScan = (scannedCode) => {
+    setCode(scannedCode);
+    setShowScanner(false);
   };
 
   return (
@@ -88,24 +135,75 @@ function CodeInput() {
           placeholder=" "
           value={code}
           onChange={handleCodeChange}
-          disabled={loading}
+          disabled={loading || showFileList}
           maxLength="4"
           className="code-input"
         />
       </div>
 
-      <button
-        className="btn-download"
-        onClick={handleDownload}
-        disabled={code.length !== 4 || loading}
-      >
-        <span>📥</span>
-        {loading ? "Downloading..." : "Download File"}
-      </button>
+      {!showFileList ? (
+        <>
+          <div className="button-group">
+            <button
+              className="btn-download"
+              onClick={handleGetFiles}
+              disabled={code.length !== 4 || loading}
+            >
+              <FiDownload />
+              {loading ? "Retrieving..." : "Get Files"}
+            </button>
+            <button
+              className="btn-scan-qr"
+              onClick={() => setShowScanner(true)}
+              disabled={loading}
+              title="Scan QR code with camera"
+            >
+              <FiSmartphone />
+              Scan QR
+            </button>
+          </div>
 
-      <div className="code-info">
-        <p>Enter the 4-digit code your friend sent you</p>
-      </div>
+          <div className="code-info">
+            <p>Enter the 4-digit code your friend sent you</p>
+          </div>
+        </>
+      ) : (
+        <div className="files-selection-container">
+          <h3 className="files-selection-title">
+            <FiBox /> {filesList.length} File{filesList.length !== 1 ? "s" : ""} Available
+          </h3>
+
+          <div className="files-selection-list">
+            {filesList.map((file, index) => (
+              <button
+                key={index}
+                className="file-download-btn"
+                onClick={() => handleDownloadFile(index)}
+                disabled={loading}
+              >
+                <span className="file-icon"><FiFile /></span>
+                <span className="file-name">{file.name}</span>
+                <span className="download-icon"><FiArrowDown /></span>
+              </button>
+            ))}
+          </div>
+
+          <button
+            className="btn-reset"
+            onClick={handleReset}
+            disabled={loading}
+          >
+            Try Another Code
+          </button>
+        </div>
+      )}
+
+      {showScanner && (
+        <QRCodeScanner
+          onScan={handleQRScan}
+          onClose={() => setShowScanner(false)}
+        />
+      )}
     </div>
   );
 }

@@ -1,0 +1,141 @@
+.code-receive-container {
+  width: 100%;
+  padding: 1.5rem 1rem;
+  min-height: calc(100vh - 60px);
+  background: var(--bg-secondary);
+}
+
+.code-receive-content {
+  max-width: 500px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.code-receive-header {
+  text-align: center;
+}
+
+.code-receive-header .header-icon {
+  font-size: 2.5rem;
+  color: var(--primary-main);
+  margin-bottom: 0.5rem;
+}
+
+.code-receive-header h2 {
+  margin: 0.25rem 0;
+  font-size: 1.75rem;
+  color: var(--text-primary);
+  font-weight: 700;
+}
+
+.code-receive-header p {
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+}
+
+.code-receive-form {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 0.75rem;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  box-shadow: var(--shadow-sm);
+}
+
+.code-input {
+  width: 100%;
+  padding: 1rem;
+  font-size: 1.75rem;
+  font-weight: 800;
+  text-align: center;
+  letter-spacing: 6px;
+  font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
+  background: var(--bg-primary);
+  border: 1.5px solid var(--border-color);
+  color: var(--primary-main);
+  border-radius: 0.75rem;
+  transition: var(--transition-smooth);
+}
+
+.code-input:focus {
+  outline: none;
+  border-color: var(--primary-main);
+  box-shadow: 0 0 0 4px rgba(30, 41, 59, 0.05);
+}
+
+.button-group-code-receive {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.button-group-code-receive button {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.btn-scan-qr {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+}
+
+.btn-scan-qr:hover {
+  background: var(--border-light);
+}
+
+.code-output {
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  position: relative;
+}
+
+.code-output h3 {
+  font-size: 1rem;
+  color: var(--text-secondary);
+  font-weight: 700;
+}
+
+/* VS Code Styled Output */
+.code-textarea-output {
+  width: 100%;
+  padding: 1rem 1rem 1rem 3.5rem;
+  background: #1e1e1e !important;
+  color: #9cdcfe !important; /* Variable color for formatted output */
+  border: 1px solid #3c3c3c !important;
+  border-radius: 8px;
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  resize: vertical;
+  min-height: 250px;
+}
+
+.code-output::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 2rem; /* After header */
+  bottom: 3.5rem; /* Before button */
+  width: 3rem;
+  background: #252526;
+  border-right: 1px solid #333;
+  border-top-left-radius: 8px;
+  border-bottom-left-radius: 8px;
+  pointer-events: none;
+  z-index: 1;
+}
+
+@media (max-width: 480px) {
+  .button-group-code-receive {
+    flex-direction: column;
+  }
+}

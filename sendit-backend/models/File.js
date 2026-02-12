@@ -3,11 +3,20 @@ import mongoose from "mongoose";
 const fileSchema = new mongoose.Schema(
   {
     code: String,
-    encryptedPath: String, 
-    originalName: String,
-    mimeType: String,
+    files: [
+      {
+        encryptedPath: String,
+        originalName: String,
+        mimeType: String
+      }
+    ],
 
-    expiresAt: Date,        
+    expiresAt: Date,
+    expiresIn: {
+      type: Number,
+      default: 10,
+      description: "Expiration time in minutes"
+    },
     isCodeUsed: {
       type: Boolean,
       default: false

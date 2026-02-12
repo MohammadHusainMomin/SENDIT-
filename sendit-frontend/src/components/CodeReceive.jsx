@@ -1,13 +1,17 @@
 import { useState } from "react";
+import { FiDownload, FiSmartphone, FiCopy, FiCheckCircle } from "react-icons/fi";
 import api from "../services/api";
 import { formatCode } from "../utils/formatCode";
 import { useToast } from "../context/ToastContext";
+import QRCodeScanner from "./QRCodeScanner";
+import "./styles/CodeReceive.css";
 
 function CodeReceive() {
   const [code, setCode] = useState("");
   const [content, setContent] = useState("");
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [showScanner, setShowScanner] = useState(false);
   const { success, error } = useToast();
 
   const handleReceive = async () => {
@@ -23,10 +27,10 @@ function CodeReceive() {
 
     setLoading(true);
     try {
-      const res = await api.post("/api/code/receive", { code });
+      const res = await api.post("/code/receive", { code });
       const formattedCode = formatCode(res.data.content);
       setContent(formattedCode);
-      success("🔓 Code decrypted & received successfully!");
+      success("Code decrypted & received successfully!");
     } catch (err) {
       if (err.response?.status === 404) {
         error("Invalid code. Please check and try again");
@@ -65,11 +69,16 @@ function CodeReceive() {
     }
   };
 
+  const handleQRScan = (scannedCode) => {
+    setCode(scannedCode);
+    setShowScanner(false);
+  };
+
   return (
     <div className="code-receive-container">
       <div className="code-receive-content">
         <section className="code-receive-header">
-          <div className="header-icon">📥</div>
+          <div className="header-icon"><FiDownload /></div>
           <h2>Receive Code</h2>
           <p>Enter the 4-digit code to retrieve the code</p>
         </section>
@@ -90,13 +99,21 @@ function CodeReceive() {
             )}
           </div>
 
-          <div className="button-group">
+          <div className="button-group-code-receive">
             <button
               onClick={handleReceive}
               disabled={loading || code.length !== 4}
               className="btn-primary"
             >
               {loading ? "Retrieving..." : "Get Code"}
+            </button>
+            <button
+              onClick={() => setShowScanner(true)}
+              disabled={loading}
+              className="btn-scan-qr"
+              title="Scan QR code with camera"
+            >
+              <FiSmartphone /> Scan QR
             </button>
             {content && (
               <button
@@ -111,21 +128,27 @@ function CodeReceive() {
 
         {content && (
           <section className="code-output">
-            <h3>📋 Received Code (Formatted)</h3>
+            <h3><FiCopy /> Received Code (Formatted)</h3>
             <textarea
               rows="12"
               value={content}
               readOnly
               className="code-textarea-output"
-              style={{ whiteSpace: 'pre', lineHeight: '1.6' }}
             />
             <button
               onClick={handleCopyCode}
               className={`btn-copy-large ${copied ? 'copied' : ''}`}
             >
-              {copied ? '✓ Copied!' : '📋 Copy Code'}
+              {copied ? <><FiCheckCircle /> Copied!</> : <><FiCopy /> Copy Code</>}
             </button>
           </section>
+        )}
+
+        {showScanner && (
+          <QRCodeScanner
+            onScan={handleQRScan}
+            onClose={() => setShowScanner(false)}
+          />
         )}
       </div>
     </div>

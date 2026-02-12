@@ -56,12 +56,13 @@ const decryptText = (combinedData) => {
 /* ================= SEND CODE ================= */
 export const sendCode = async (req, res) => {
   try {
-    const { content } = req.body;
+    const { content, expiresIn } = req.body;
     if (!content) {
       return res.status(400).json({ message: "Code is required" });
     }
 
     const shareCode = Math.floor(1000 + Math.random() * 9000).toString();
+    const expirationTime = parseInt(expiresIn) || 10; // Default to 10 minutes
 
     // Encrypt the code content
     const encryptedContent = encryptText(content);
@@ -69,11 +70,12 @@ export const sendCode = async (req, res) => {
     await Code.create({
       code: shareCode,
       content: encryptedContent,
-      expiresAt: new Date(Date.now() + 10 * 60 * 1000),
+      expiresIn: expirationTime,
+      expiresAt: new Date(Date.now() + expirationTime * 60 * 1000),
       senderId: req.user?.id
     });
 
-    res.json({ code: shareCode });
+    res.json({ code: shareCode, expiresIn: expirationTime });
 
   } catch (err) {
     console.error("SEND CODE ERROR:", err);
@@ -98,6 +100,7 @@ export const receiveCode = async (req, res) => {
     // Decrypt the code content
     const decryptedContent = decryptText(data.content);
 
+    // Record receiverId if user is authenticated and no receiver yet
     if (!data.receiverId && req.user) {
       data.receiverId = req.user.id;
       await data.save();

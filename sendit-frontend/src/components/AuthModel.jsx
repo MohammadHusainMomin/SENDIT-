@@ -1,4 +1,5 @@
 import { useState, useContext, useEffect } from "react";
+import { FiLock, FiX } from "react-icons/fi";
 import GoogleLoginBtn from "./GoogleLoginBtn";
 import ForgotPassword from "./ForgotPassword";
 import { AuthContext } from "../context/AuthContext";
@@ -53,24 +54,24 @@ function AuthModal({ isOpen, closeModal }) {
 
       // 🔹 LOGIN
       if (mode === "login") {
-        const res = await api.post("/api/auth/login", {
+        const res = await api.post("/auth/login", {
           email: form.email,
           password: form.password,
         });
 
         localStorage.setItem("token", res.data.token);
         login(res.data.user);
-        success("Login successful! Welcome back 🎉");
+        success("Login successful! Welcome back");
         closeModal();
         return;
       }
 
       // 🔹 REGISTER → SEND OTP
-      await api.post("/api/auth/register-init", {
+      await api.post("/auth/register-init", {
         email: form.email,
       });
 
-      success("OTP sent to your email! ✓");
+      success("OTP sent to your email!");
       setStep("otp");
     } catch (err) {
       const errorMsg = err.response?.data?.message || "Something went wrong";
@@ -92,7 +93,7 @@ function AuthModal({ isOpen, closeModal }) {
       setLoading(true);
       setError("");
 
-      const res = await api.post("/api/auth/verify-otp", {
+      const res = await api.post("/auth/verify-otp", {
         name: form.name,
         email: form.email,
         password: form.password,
@@ -101,7 +102,7 @@ function AuthModal({ isOpen, closeModal }) {
 
       localStorage.setItem("token", res.data.token);
       login(res.data.user);
-      success("Account created successfully! 🎉");
+      success("Account created successfully!");
       closeModal();
     } catch (err) {
       const errorMsg = err.response?.data?.message || "Invalid OTP";
@@ -125,7 +126,7 @@ function AuthModal({ isOpen, closeModal }) {
   return (
     <div className="auth-modal-overlay">
       <div className="auth-modal">
-        <button className="modal-close-btn" onClick={closeModal}>✕</button>
+        <button className="modal-close-btn" onClick={closeModal}><FiX className="close-icon-model" /></button>
 
         {/* ================= FORGOT PASSWORD ================= */}
         {mode === "forgot" ? (
@@ -133,7 +134,7 @@ function AuthModal({ isOpen, closeModal }) {
         ) : (
           <>
             <div className="modal-header">
-              <div className="modal-icon">🔐</div>
+              <div className="modal-icon"><FiLock /></div>
               <h3>
                 {mode === "login"
                   ? "Welcome Back"
@@ -234,30 +235,34 @@ function AuthModal({ isOpen, closeModal }) {
             )}
 
             {/* ================= TOGGLES ================= */}
-            <div className="auth-toggle">
-              <p>
-                {mode === "login"
-                  ? "Don't have an account?"
-                  : "Already have an account?"}
-                <button
-                  className="toggle-link"
-                  onClick={() =>
-                    switchMode(mode === "login" ? "register" : "login")
-                  }
-                >
-                  {mode === "login" ? "Sign Up" : "Sign In"}
-                </button>
-              </p>
+       <div className="auth-toggle">
+  <p>
+    {mode === "login"
+      ? "Don't have an account?"
+      : "Already have an account?"}
+      
+    {/* Add the class here */}
+    <button
+      className="text-link-btn" 
+      onClick={() =>
+        switchMode(mode === "login" ? "register" : "login")
+      }
+    >
+      {mode === "login" ? "Sign Up" : "Sign In"}
+    </button>
+  </p>
 
-              {mode === "login" && (
-                <button
-                  className="toggle-link"
-                  onClick={() => switchMode("forgot")}
-                >
-                  Forgot Password?
-                </button>
-              )}
-            </div>
+  {mode === "login" && (
+    /* Add the class here as well */
+    <button
+      className="text-link-btn"
+      
+      onClick={() => switchMode("forgot")}
+    >
+      Forgot Password?
+    </button>
+  )}
+</div>
           </>
         )}
       </div>

@@ -1,19 +1,21 @@
 import CodeInput from "../components/CodeInput";
 import { DownloadIllustration } from "../components/Illustrations";
 import SEO from "../components/SEO";
+import { FiDownload, FiUser, FiClock, FiRotateCcw } from "react-icons/fi";
 import "../styles/Receive.css";
 
 function Receive() {
   return (
     <div className="receive-container">
       <SEO
-        title="Receive File - SendIt"
-        description="Receive files securely using a 4-digit access code. Fast, secure, and no account required."
-        url="https://sendit.example.com/receive"
+        title="Receive Files Online - SendIt Secure Download"
+        description="Receive files securely using a 4-digit access code. Download shared files instantly, for free, and with no registration required."
+        keywords="receive files online, download files, secure file download, 4-digit code sharing"
+        url="https://senditsystem.netlify.app/receive"
       />
       <div className="receive-content">
         <section className="receive-header">
-          <div className="header-icon">📥</div>
+          <div className="header-icon"><FiDownload /></div>
           <h2>Receive File</h2>
           <p>Enter the 4-digit code to download</p>
         </section>
@@ -50,15 +52,15 @@ function Receive() {
 
         <section className="receive-notes">
           <div className="note-item">
-            <span className="note-icon">🔐</span>
-            <p>Only available to logged-in users</p>
+            <span className="note-icon"><FiUser /></span>
+            <p>Guest access available - no login required</p>
           </div>
           <div className="note-item">
-            <span className="note-icon">⏰</span>
-            <p>Codes expire after 10 minutes</p>
+            <span className="note-icon"><FiClock /></span>
+            <p>Codes expire based on sender's selected time</p>
           </div>
           <div className="note-item">
-            <span className="note-icon">🔄</span>
+            <span className="note-icon"><FiRotateCcw /></span>
             <p>Each code can be used multiple times until expired</p>
           </div>
         </section>

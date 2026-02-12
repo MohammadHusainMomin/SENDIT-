@@ -19,14 +19,14 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage });
 
-// Guest send (no history)
-router.post("/send", upload.single("file"), sendFile);
+// Guest send (no history) - supports multiple files
+router.post("/send", upload.array("files"), sendFile);
 
-//  Logged-in send (history)
-router.post("/send-auth", authMiddleware, upload.single("file"), sendFile);
+//  Logged-in send (history) - supports multiple files
+router.post("/send-auth", authMiddleware, upload.array("files"), sendFile);
 
-//  Receive (must be logged-in to save history)
-router.post("/receive", authMiddleware, receiveFile);
+//  Receive (guests can receive, auth is optional for history tracking)
+router.post("/receive", receiveFile);
 
 //  History
 router.get("/files/my", authMiddleware, getMyFiles);

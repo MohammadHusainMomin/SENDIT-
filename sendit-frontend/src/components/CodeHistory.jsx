@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { FiBook, FiCopy } from "react-icons/fi";
 import api from "../services/api";
 import { useToast } from "../context/ToastContext";
 
@@ -15,7 +16,7 @@ function CodeHistory() {
   const fetchHistory = async () => {
     try {
       setLoading(true);
-      const res = await api.get("/api/code/my");
+      const res = await api.get("/code/my");
       setCodes(res.data);
     } catch (err) {
       error("Failed to load code history");
@@ -46,7 +47,7 @@ function CodeHistory() {
     <div className="code-history-container">
       <div className="code-history-content">
         <section className="code-history-header">
-          <div className="header-icon">📚</div>
+          <div className="header-icon"><FiBook /></div>
           <h2>Code History</h2>
           <p>Your shared and received codes</p>
         </section>
@@ -80,7 +81,7 @@ function CodeHistory() {
                     onClick={() => handleCopyCode(codeItem.content)}
                     className="btn-copy-small"
                   >
-                    📋 Copy
+                    <FiCopy /> Copy
                   </button>
                 </div>
               </div>

@@ -7,7 +7,7 @@ function CodeReceive() {
   const [result, setResult] = useState("");
 
   const handleReceive = async () => {
-    const res = await api.post("/api/code/receive", { code });
+    const res = await api.post("/code/receive", { code });
     setResult(formatCode(res.data.content));
   };
 

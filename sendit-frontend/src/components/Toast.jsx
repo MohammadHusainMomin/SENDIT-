@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { FiCheckCircle, FiX, FiInfo } from "react-icons/fi";
 import "./styles/Toast.css";
 
 function Toast({ message, type = "success", duration = 3000, onClose }) {
@@ -11,14 +12,14 @@ function Toast({ message, type = "success", duration = 3000, onClose }) {
     <div className={`toast-notification toast-${type}`}>
       <div className="toast-content">
         <div className="toast-icon">
-          {type === "success" && "✓"}
-          {type === "error" && "✕"}
-          {type === "info" && "ℹ"}
+          {type === "success" && <FiCheckCircle />}
+          {type === "error" && <FiX />}
+          {type === "info" && <FiInfo />}
         </div>
         <p className="toast-message">{message}</p>
       </div>
       <button className="toast-close" onClick={onClose} aria-label="Close notification">
-        ✕
+        <FiX />
       </button>
     </div>
   );

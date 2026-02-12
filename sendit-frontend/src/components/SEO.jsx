@@ -12,11 +12,11 @@ import { useEffect } from "react";
  * @param {Object} props.structuredData - Structured data object (JSON-LD)
  */
 export default function SEO({
-  title = "SendIt - Secure File & Code Transfer",
-  description = "SendIt is a secure platform to send files and code snippets with encrypted links. Share large files and code easily.",
-  keywords = "file sharing, code sharing, secure transfer, encrypted files",
-  url = "https://sendit.example.com",
-  image = "https://sendit.example.com/og-image.png",
+  title = "SendIt - Share Files Online | Secure File & Code Sharing Platform",
+  description = "SendIt is the fastest way to share files and code snippets online. Send large files for free, securely, and with no registration required. Best alternative for secure file transfer.",
+  keywords = "share files online, send large files free, secure file transfer, code sharing, anonymous file sharing, sendit, encrypted file sharing, best file sharing site",
+  url = "https://senditsystem.netlify.app",
+  image = "https://senditsystem.netlify.app/og-image.png",
   type = "website",
   structuredData = null,
 }) {

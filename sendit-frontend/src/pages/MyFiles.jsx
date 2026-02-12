@@ -2,6 +2,7 @@ import { useEffect, useState, useContext } from "react";
 import { AuthContext } from "../context/AuthContext";
 import Mascot from "../components/Mascot";
 import SEO from "../components/SEO";
+import { FiFileText, FiUploadCloud, FiDownload, FiFile, FiCopy } from "react-icons/fi";
 import "../styles/MyFiles.css";
 import api from "../services/api";
 import { useToast } from "../context/ToastContext";
@@ -20,7 +21,7 @@ function MyFiles() {
     const fetchFiles = async () => {
       try {
         setLoading(true);
-        const res = await api.get("/api/files/my", {
+        const res = await api.get("/files/my", {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -63,7 +64,7 @@ function MyFiles() {
       <div className="my-files-content">
         {/* Header */}
         <section className="files-header">
-          <div className="header-icon">📋</div>
+          <div className="header-icon"><FiFileText /></div>
           <h2>My Files</h2>
           <p>View your sent and received files</p>
         </section>
@@ -74,14 +75,14 @@ function MyFiles() {
             className={`tab-btn ${activeTab === "sent" ? "active" : ""}`}
             onClick={() => setActiveTab("sent")}
           >
-            <span>📤</span>
+            <FiUploadCloud />
             Sent ({sentFiles.length})
           </button>
           <button
             className={`tab-btn ${activeTab === "received" ? "active" : ""}`}
             onClick={() => setActiveTab("received")}
           >
-            <span>📥</span>
+            <FiDownload />
             Received ({receivedFiles.length})
           </button>
         </div>
@@ -108,7 +109,7 @@ function MyFiles() {
               {displayFiles.map((file) => (
                 <div key={file._id} className="file-card">
                   <div className="file-card-header">
-                    <div className="file-type-icon">📄</div>
+                    <div className="file-type-icon"><FiFile /></div>
                     <span className="file-status-badge">
                       {activeTab === "sent" ? "Sent" : "Received"}
                     </span>
@@ -140,7 +141,7 @@ function MyFiles() {
                       }}
                       title="Copy code"
                     >
-                      📋 {file.code}
+                      <FiCopy /> {file.code}
                     </button>
 
                     <button
@@ -148,7 +149,7 @@ function MyFiles() {
                       onClick={async () => {
                         try {
                           const res = await api.get(
-                            `/api/files/download/${file._id}`,
+                            `/files/download/${file._id}`,
                             {
                               responseType: "blob",
                               headers: {
@@ -174,7 +175,7 @@ function MyFiles() {
                         }
                       }}
                     >
-                      ⬇️ Download
+                      <FiDownload /> Download
                     </button>
                   </div>
                 </div>

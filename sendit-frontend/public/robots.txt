@@ -5,6 +5,7 @@ User-agent: *
 Allow: /
 Disallow: /admin
 Disallow: /api
+Disallow: /static/
 Disallow: *.pdf$
 Disallow: *.zip$
 
@@ -24,5 +25,11 @@ Disallow: /
 User-agent: SemrushBot
 Disallow: /
 
+User-agent: MJ12bot
+Disallow: /
+
+User-agent: DotBot
+Disallow: /
+
 # Sitemap location
-Sitemap: https://sendit.example.com/sitemap.xml
+Sitemap: https://senditsystem.netlify.app/sitemap.xml

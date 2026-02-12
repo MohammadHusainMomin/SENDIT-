@@ -6,11 +6,12 @@ import { AuthProvider } from './context/AuthContext';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
-  <GoogleOAuthProvider clientId="473711996237-u83qd6jjv1c8ikf5sbm92vgd61i01rcr.apps.googleusercontent.com">
-    <AuthProvider>
-      <App />
-    </AuthProvider>
-  </GoogleOAuthProvider>
+ <GoogleOAuthProvider clientId={process.env.REACT_APP_GOOGLE_CLIENT_ID}>
+  <AuthProvider>
+    <App />
+  </AuthProvider>
+</GoogleOAuthProvider>
+
 );
 
 // Register service worker for PWA

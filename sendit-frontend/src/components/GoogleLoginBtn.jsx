@@ -11,9 +11,9 @@ function GoogleLoginBtn({ closeModal }) {
   const handleSuccess = async (credentialResponse) => {
     try {
       const res = await api.post(
-        "/api/auth/google",
+        "/auth/google",
         {
-          credential: credentialResponse.credential 
+          credential: credentialResponse.credential
         }
       );
 

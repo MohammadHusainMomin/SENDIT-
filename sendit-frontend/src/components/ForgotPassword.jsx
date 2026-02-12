@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { FiAlertTriangle, FiArrowLeft } from "react-icons/fi";
 import api from "../services/api";
 import { useToast } from "../context/ToastContext";
 import "./styles/ForgotPassword.css";
@@ -27,10 +28,10 @@ function ForgotPassword({ closeModal }) {
     try {
       setLoading(true);
       setError("");
-      await api.post("/api/auth/forgot-password", {
+      await api.post("/auth/forgot-password", {
         email: form.email
       });
-      success("OTP sent to your email! ✓");
+      success("OTP sent to your email!");
       setStep(2);
     } catch (err) {
       const errorMsg = err.response?.data?.message || "Failed to send OTP";
@@ -73,12 +74,12 @@ function ForgotPassword({ closeModal }) {
     try {
       setLoading(true);
       setError("");
-      await api.post("/api/auth/reset-password", {
+      await api.post("/auth/reset-password", {
         email: form.email,
         otp: form.otp,
         newPassword: form.newPassword
       });
-      success("Password reset successful! 🎉");
+      success("Password reset successful!");
       closeModal();
     } catch (err) {
       const errorMsg = err.response?.data?.message || "Failed to reset password";
@@ -104,7 +105,7 @@ function ForgotPassword({ closeModal }) {
 
       {error && (
         <div className="forgot-password-error">
-          <span className="error-icon">⚠️</span>
+          <span className="error-icon"><FiAlertTriangle /></span>
           {error}
         </div>
       )}
@@ -187,7 +188,7 @@ function ForgotPassword({ closeModal }) {
           </button>
 
           <button type="button" className="btn-forgot-back" onClick={goBack} disabled={loading}>
-            ← Back to Email
+            <FiArrowLeft /> Back to Email
           </button>
         </form>
       )}

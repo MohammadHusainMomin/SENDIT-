@@ -5,7 +5,7 @@ function CodeHistory() {
   const [codes, setCodes] = useState([]);
 
   useEffect(() => {
-    api.get("/api/code/my").then((res) => setCodes(res.data));
+    api.get("/code/my").then((res) => setCodes(res.data));
   }, []);
 
   return (
